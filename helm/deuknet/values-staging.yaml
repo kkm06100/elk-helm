@@ -1,0 +1,28 @@
+# Staging environment values
+global:
+  namespace: deuknet-staging
+
+elasticsearch:
+  enabled: true
+  env:
+    elasticPassword: "staging-password-change-me"
+
+  resources:
+    requests:
+      cpu: 750m
+      memory: 1536Mi
+    limits:
+      cpu: 1500m
+      memory: 2560Mi
+
+  storage:
+    size: 20Gi
+
+kibana:
+  enabled: true
+
+logstash:
+  enabled: true
+
+filebeat:
+  enabled: true

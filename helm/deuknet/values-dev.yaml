@@ -1,0 +1,19 @@
+# Development environment values
+global:
+  namespace: deuknet-dev
+
+elasticsearch:
+  enabled: true
+  env:
+    elasticPassword: "dev-password-change-me"
+  storage:
+    size: 5Gi
+
+kibana:
+  enabled: true
+
+logstash:
+  enabled: true
+
+filebeat:
+  enabled: true

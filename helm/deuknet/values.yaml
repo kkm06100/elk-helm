@@ -1,0 +1,155 @@
+# Default values for deuknet
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  namespace: default
+
+# Elasticsearch settings
+elasticsearch:
+  enabled: true
+  name: elasticsearch
+  replicaCount: 1
+
+  image:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: 8.11.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    httpPort: 9200
+    transportPort: 9300
+
+  env:
+    discoveryType: single-node
+    javaOpts: "-Xms512m -Xmx512m"
+    # Elasticsearch 비밀번호 (환경별로 다르게 설정하세요)
+    # Secret 이름: elasticsearch-credentials
+    # 비밀번호 확인: kubectl get secret elasticsearch-credentials -n <namespace> -o jsonpath='{.data.elastic-password}' | base64 -d
+    elasticPassword: "changeme"
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  config:
+    xpackSecurityEnabled: true
+    xpackSecurityEnrollmentEnabled: true
+
+  # TLS/CA 설정
+  tls:
+    enabled: true
+    # CA 인증서 유효기간 (일)
+    caDays: 3650
+    # 서버 인증서 유효기간 (일)
+    certDays: 1095
+
+  # Storage 설정
+  storage:
+    size: 10Gi
+    # storageClass를 지정하지 않으면 기본 StorageClass 사용
+    storageClass: ""
+
+# Logstash settings
+logstash:
+  enabled: true
+  name: logstash
+  replicaCount: 1
+
+  image:
+    repository: docker.elastic.co/logstash/logstash
+    tag: 8.11.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 5044
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Kibana settings
+kibana:
+  enabled: true
+  name: kibana
+  replicaCount: 1
+
+  image:
+    repository: docker.elastic.co/kibana/kibana
+    tag: 8.11.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: NodePort
+    port: 5601
+    nodePort: 30561
+
+  env:
+    elasticsearchHosts: http://elasticsearch:9200
+    # elasticsearchUsername과 elasticsearchPassword는 Secret으로 관리됩니다
+    # Secret 이름: elasticsearch-credentials
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Ingress settings
+  ingress:
+    enabled: true
+    className: nginx  # Ingress class (nginx, traefik 등)
+    annotations:
+      # nginx.ingress.kubernetes.io/rewrite-target: /
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: kibana.local  # 원하는 도메인으로 변경하세요
+        paths:
+          - path: /
+            pathType: Prefix
+    # TLS 설정 (선택사항)
+    tls: []
+    #  - secretName: kibana-tls
+    #    hosts:
+    #      - kibana.local
+
+  # KQL 자동 설정
+  setup:
+    enabled: true
+    image:
+      repository: curlimages/curl
+      tag: latest
+    indexPattern:
+      name: "logstash-*"
+      timeField: "@timestamp"
+
+# Filebeat settings
+filebeat:
+  enabled: true
+  name: filebeat
+
+  image:
+    repository: docker.elastic.co/beats/filebeat
+    tag: 8.11.0
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
