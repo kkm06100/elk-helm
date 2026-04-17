@@ -1,1 +1,1 @@
-# stupid-elk-helm
+# elk-helm
